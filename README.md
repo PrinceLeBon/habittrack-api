@@ -101,7 +101,9 @@ Règles : `name` de 3 à 60 caractères ; `description` ≤ 500 ; `frequency` va
 | `PUT /habits/:id/checkins/:date` | Valider un jour. **Idempotent** : valider deux fois ne crée qu'une validation. 200 : `{ habitId, date }`. |
 | `DELETE /habits/:id/checkins/:date` | Dé-valider un jour. **Idempotent**. 204. |
 
-Refusés (400) : une date mal formée, un jour **futur** (avec une tolérance d'un jour, car « aujourd'hui » chez l'utilisateur peut être « demain » en UTC), un jour antérieur à `startDate`.
+Refusés (400) : une date mal formée, un jour **futur**, un jour antérieur à `startDate`.
+
+> **Quel fuseau ?** Le serveur ne connaît pas le fuseau de l'utilisateur. Il accepte donc toute date jusqu'à **la date UTC du jour + 1**. Comme aucun fuseau n'a plus de 14 heures d'avance sur UTC, la date locale d'un utilisateur ne la dépasse jamais : à Cotonou (UTC+1) à 0 h 30, ou à Kiritimati (UTC+14), « aujourd'hui » est toujours accepté. En contrepartie, le serveur ne peut pas refuser à lui seul une validation « demain » faite depuis un fuseau à l'ouest : c'est au client de n'envoyer que la date du jour **locale**, calculée avec `toLocalIsoDate` (leçon 12.3).
 
 > La règle « on ne peut cocher que jusqu'à 7 jours en arrière » du cahier des charges est une règle **d'interface** : c'est à HabitTrack Web de l'appliquer. Les statistiques (séries, taux de réussite, graphiques) se calculent **côté client**, à partir de `GET /checkins` : c'est une partie de votre projet.
 

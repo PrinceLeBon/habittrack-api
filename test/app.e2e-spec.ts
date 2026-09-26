@@ -182,6 +182,14 @@ describe('HabitTrack API (e2e)', () => {
       await http().get('/checkins?from=2020-01-01&to=2026-01-01').set(auth(aliceToken)).expect(400);
     });
 
+    it('accepte « demain en UTC » (fuseaux jusqu’à UTC+14), refuse au-delà', async () => {
+      const tomorrowUtc = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+      const afterTomorrowUtc = new Date(Date.now() + 2 * 86_400_000).toISOString().slice(0, 10);
+      await http().put(`/habits/${habitId}/checkins/${tomorrowUtc}`).set(auth(aliceToken)).expect(200);
+      await http().put(`/habits/${habitId}/checkins/${afterTomorrowUtc}`).set(auth(aliceToken)).expect(400);
+      await http().delete(`/habits/${habitId}/checkins/${tomorrowUtc}`).set(auth(aliceToken)).expect(204);
+    });
+
     it('archive, filtre, et protège les habitudes des autres', async () => {
       await http().patch(`/habits/${habitId}`).set(auth(aliceToken)).send({ archived: true }).expect(200);
       const archived = await http().get('/habits?archived=true').set(auth(aliceToken)).expect(200);

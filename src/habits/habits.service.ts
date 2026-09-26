@@ -133,7 +133,8 @@ export class HabitsService {
 
   private assertValidDay(date: string, startDate: Date) {
     this.assertIsoDate(date);
-    // Tolérance d'un jour : « aujourd'hui » chez l'utilisateur peut être « demain » en UTC.
+    // « Aujourd'hui » chez l'utilisateur peut être « demain » en UTC : aucun fuseau n'a plus de 14 h d'avance
+    // sur UTC, donc la date locale ne dépasse jamais la date UTC + 1. On accepte donc jusqu'à demain (UTC).
     const tomorrowUtc = toIsoDate(new Date(Date.now() + DAY));
     if (date > tomorrowUtc) throw new BadRequestException(['Impossible de valider un jour futur']);
     if (date < toIsoDate(startDate)) throw new BadRequestException(['Ce jour est antérieur au début de l’habitude']);
