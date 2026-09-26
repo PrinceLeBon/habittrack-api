@@ -1,0 +1,81 @@
+// HabitTrack API — backend de référence du projet final du cours « Tasky Web : De Flutter au Web »
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  password      String
+  name          String
+  isVerified    Boolean        @default(false)
+  otpCode       String?
+  otpExpiresAt  DateTime?
+  createdAt     DateTime       @default(now())
+  habits        Habit[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  tokenHash  String    @unique
+  family     String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String?
+  createdAt  DateTime  @default(now())
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     Int
+
+  @@index([userId])
+  @@index([family])
+}
+
+/// Une session (famille de refresh tokens) révoquée : déconnexion, ou réutilisation détectée.
+model RevokedFamily {
+  family    String   @id
+  reason    String
+  revokedAt DateTime @default(now())
+}
+
+model Habit {
+  id           Int        @id @default(autoincrement())
+  clientId     String?    @unique
+  name         String
+  description  String?
+  frequency    Frequency  @default(DAILY)
+  timesPerWeek Int?
+  color        String
+  startDate    DateTime   @db.Date
+  archived     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       Int
+  checkins     Checkin[]
+
+  @@index([userId])
+}
+
+model Checkin {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habitId   Int
+
+  @@unique([habitId, date])
+  @@index([date])
+}

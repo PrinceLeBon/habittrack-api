@@ -1,0 +1,56 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: habittrack
+      POSTGRES_PASSWORD: habittrack
+      POSTGRES_DB: habittrack
+    ports:
+      - "5433:5432" # 5433 : peut tourner à côté de TaskyAPI
+    volumes:
+      - habittrack-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U habittrack -d habittrack"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  mail:
+    image: axllent/mailpit:latest
+    ports:
+      - "8026:8025" # interface web : http://localhost:8026
+      - "1026:1025" # SMTP
+
+  api:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    ports:
+      - "3001:3000" # API sur http://localhost:3001 (TaskyAPI utilise 3000)
+    healthcheck: # permet à « docker compose up --wait » d'attendre que l'API réponde (CI)
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+      start_period: 10s
+    environment:
+      NODE_ENV: development # affiche aussi les codes OTP dans les journaux de l'API
+      DATABASE_URL: postgresql://habittrack:habittrack@db:5432/habittrack
+      PORT: 3000
+      JWT_ACCESS_SECRET: dev-access-secret-change-me-please-0123456789
+      JWT_REFRESH_SECRET: dev-refresh-secret-change-me-please-9876543210
+      ACCESS_TOKEN_TTL: 15m
+      REFRESH_TOKEN_TTL_DAYS: 7
+      CORS_ORIGINS: http://localhost:5173,http://localhost:4173
+      COOKIE_SECURE: "false"
+      COOKIE_PATH: /auth
+      SMTP_HOST: mail
+      SMTP_PORT: 1025
+      MAIL_FROM: HabitTrack <no-reply@habittrack.local>
+      AUTH_REQUIRE_VERIFIED: "true"
+
+volumes:
+  habittrack-db:

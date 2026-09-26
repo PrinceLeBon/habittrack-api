@@ -1,0 +1,684 @@
+{
+    "openapi": "3.0.0",
+    "paths": {
+        "/health": {
+            "get": {
+                "operationId": "HealthController_check",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "summary": "\u00c9tat de l\u2019API et de la base de donn\u00e9es",
+                "tags": [
+                    "health"
+                ]
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "operationId": "AuthController_register",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RegisterDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "summary": "Cr\u00e9er un compte (un code OTP est envoy\u00e9 par e-mail)",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/auth/verify-otp": {
+            "post": {
+                "operationId": "AuthController_verifyOtp",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/VerifyOtpDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "summary": "V\u00e9rifier l\u2019adresse e-mail avec le code re\u00e7u",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/auth/resend-otp": {
+            "post": {
+                "operationId": "AuthController_resendOtp",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResendOtpDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "summary": "Renvoyer un code de v\u00e9rification",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "operationId": "AuthController_login",
+                "parameters": [
+                    {
+                        "name": "X-Token-Transport",
+                        "in": "header",
+                        "description": "\u00ab cookie \u00bb (clients web) : le refresh token est plac\u00e9 dans un cookie HttpOnly et absent du corps. \u00ab body \u00bb (d\u00e9faut, clients mobiles) : le refresh token est renvoy\u00e9 dans le corps JSON.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "summary": "Se connecter : jeton d\u2019acc\u00e8s (15 min) + refresh token (7 j)",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "operationId": "AuthController_refresh",
+                "parameters": [
+                    {
+                        "name": "X-Token-Transport",
+                        "in": "header",
+                        "description": "\u00ab cookie \u00bb (clients web) : le refresh token est plac\u00e9 dans un cookie HttpOnly et absent du corps. \u00ab body \u00bb (d\u00e9faut, clients mobiles) : le refresh token est renvoy\u00e9 dans le corps JSON.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RefreshDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "summary": "Obtenir un nouveau jeton d\u2019acc\u00e8s (rotation du refresh token)",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "operationId": "AuthController_logout",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RefreshDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "summary": "Se d\u00e9connecter : r\u00e9voque la session et efface le cookie",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/auth/me": {
+            "get": {
+                "operationId": "AuthController_me",
+                "parameters": [],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "L\u2019utilisateur connect\u00e9",
+                "tags": [
+                    "auth"
+                ]
+            }
+        },
+        "/habits": {
+            "get": {
+                "operationId": "HabitsController_findAll",
+                "parameters": [
+                    {
+                        "name": "archived",
+                        "required": false,
+                        "in": "query",
+                        "description": "Filtrer sur les habitudes archiv\u00e9es (par d\u00e9faut : toutes)",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Lister ses habitudes (filtre archived facultatif)",
+                "tags": [
+                    "habits"
+                ]
+            },
+            "post": {
+                "operationId": "HabitsController_create",
+                "parameters": [],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateHabitDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Cr\u00e9er une habitude (idempotent si clientId est fourni)",
+                "tags": [
+                    "habits"
+                ]
+            }
+        },
+        "/habits/{id}": {
+            "get": {
+                "operationId": "HabitsController_findOne",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Une habitude",
+                "tags": [
+                    "habits"
+                ]
+            },
+            "patch": {
+                "operationId": "HabitsController_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateHabitDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Modifier une habitude (y compris archiver : { \"archived\": true })",
+                "tags": [
+                    "habits"
+                ]
+            },
+            "delete": {
+                "operationId": "HabitsController_remove",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "number"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Supprimer une habitude et ses validations (renvoie l\u2019habitude supprim\u00e9e)",
+                "tags": [
+                    "habits"
+                ]
+            }
+        },
+        "/checkins": {
+            "get": {
+                "operationId": "HabitsController_checkins",
+                "parameters": [
+                    {
+                        "name": "from",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "example": "2026-09-01",
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "required": true,
+                        "in": "query",
+                        "schema": {
+                            "example": "2026-09-30",
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Les jours valid\u00e9s sur une p\u00e9riode (366 jours au plus)",
+                "tags": [
+                    "habits"
+                ]
+            }
+        },
+        "/habits/{id}/checkins/{date}": {
+            "put": {
+                "operationId": "HabitsController_check",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "Valider un jour (idempotent)",
+                "tags": [
+                    "habits"
+                ]
+            },
+            "delete": {
+                "operationId": "HabitsController_uncheck",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "required": true,
+                        "in": "path",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": ""
+                    }
+                },
+                "security": [
+                    {
+                        "bearer": []
+                    }
+                ],
+                "summary": "D\u00e9-valider un jour (idempotent)",
+                "tags": [
+                    "habits"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "HabitTrack API",
+        "description": "API du projet final du cours \u00ab Tasky Web : De Flutter au Web \u00bb",
+        "version": "1.0.0",
+        "contact": {}
+    },
+    "tags": [],
+    "servers": [],
+    "components": {
+        "securitySchemes": {
+            "bearer": {
+                "scheme": "bearer",
+                "bearerFormat": "JWT",
+                "type": "http"
+            }
+        },
+        "schemas": {
+            "RegisterDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Awa Dossou"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "awa@example.com"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "MotDePasse2026",
+                        "minLength": 8
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "password"
+                ]
+            },
+            "VerifyOtpDto": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "example": "awa@example.com"
+                    },
+                    "code": {
+                        "type": "string",
+                        "example": "123456"
+                    }
+                },
+                "required": [
+                    "email",
+                    "code"
+                ]
+            },
+            "ResendOtpDto": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "example": "awa@example.com"
+                    }
+                },
+                "required": [
+                    "email"
+                ]
+            },
+            "LoginDto": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "example": "demo@habittrack.dev"
+                    },
+                    "password": {
+                        "type": "string",
+                        "example": "HabitTrack2026!"
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ]
+            },
+            "RefreshDto": {
+                "type": "object",
+                "properties": {
+                    "refresh_token": {
+                        "type": "string",
+                        "description": "Mode \u00ab body \u00bb uniquement. En mode cookie, le jeton est lu dans le cookie habittrack_refresh."
+                    }
+                }
+            },
+            "CreateHabitDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Lire 20 minutes",
+                        "minLength": 3,
+                        "maxLength": 60
+                    },
+                    "description": {
+                        "type": "object",
+                        "example": "Avant de dormir",
+                        "maxLength": 500,
+                        "nullable": true
+                    },
+                    "frequency": {
+                        "type": "string",
+                        "enum": [
+                            "DAILY",
+                            "WEEKLY"
+                        ],
+                        "default": "DAILY"
+                    },
+                    "timesPerWeek": {
+                        "type": "object",
+                        "example": 3,
+                        "minimum": 1,
+                        "maximum": 7,
+                        "description": "Obligatoire si frequency = WEEKLY"
+                    },
+                    "color": {
+                        "type": "string",
+                        "enum": [
+                            "indigo",
+                            "emerald",
+                            "amber",
+                            "rose",
+                            "sky",
+                            "violet"
+                        ],
+                        "example": "indigo"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "example": "2026-09-01",
+                        "description": "AAAA-MM-JJ"
+                    },
+                    "clientId": {
+                        "type": "string",
+                        "description": "Identifiant g\u00e9n\u00e9r\u00e9 par le client (UUID), pour le mode hors ligne"
+                    }
+                },
+                "required": [
+                    "name",
+                    "color",
+                    "startDate"
+                ]
+            },
+            "UpdateHabitDto": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "example": "Lire 20 minutes",
+                        "minLength": 3,
+                        "maxLength": 60
+                    },
+                    "description": {
+                        "type": "object",
+                        "example": "Avant de dormir",
+                        "maxLength": 500,
+                        "nullable": true
+                    },
+                    "frequency": {
+                        "type": "string",
+                        "enum": [
+                            "DAILY",
+                            "WEEKLY"
+                        ],
+                        "default": "DAILY"
+                    },
+                    "timesPerWeek": {
+                        "type": "object",
+                        "example": 3,
+                        "minimum": 1,
+                        "maximum": 7,
+                        "description": "Obligatoire si frequency = WEEKLY"
+                    },
+                    "color": {
+                        "type": "string",
+                        "enum": [
+                            "indigo",
+                            "emerald",
+                            "amber",
+                            "rose",
+                            "sky",
+                            "violet"
+                        ],
+                        "example": "indigo"
+                    },
+                    "startDate": {
+                        "type": "string",
+                        "example": "2026-09-01",
+                        "description": "AAAA-MM-JJ"
+                    },
+                    "clientId": {
+                        "type": "string",
+                        "description": "Identifiant g\u00e9n\u00e9r\u00e9 par le client (UUID), pour le mode hors ligne"
+                    },
+                    "archived": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                }
+            }
+        }
+    }
+}

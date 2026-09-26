@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: habittrack
+          POSTGRES_PASSWORD: habittrack
+          POSTGRES_DB: habittrack
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U habittrack -d habittrack"
+          --health-interval 3s --health-timeout 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://habittrack:habittrack@localhost:5432/habittrack
+      JWT_ACCESS_SECRET: ci-access-secret-0123456789abcdef
+      JWT_REFRESH_SECRET: ci-refresh-secret-fedcba9876543210
+      CORS_ORIGINS: http://localhost:5173
+      COOKIE_SECURE: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:types
+      - run: npx prisma migrate deploy
+      - run: npm run seed
+      - run: npm run build
+      - run: npm run test:e2e
